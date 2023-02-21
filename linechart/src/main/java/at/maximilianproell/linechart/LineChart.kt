@@ -22,14 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.TextStyle
@@ -40,11 +39,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import at.maximilianproell.linechart.common.axis.AxisConfig
 import at.maximilianproell.linechart.common.axis.AxisConfigDefaults
+import at.maximilianproell.linechart.common.axis.XAxisConfig
+import at.maximilianproell.linechart.common.axis.YAxisConfig
 import at.maximilianproell.linechart.common.axis.drawXLabel
 import at.maximilianproell.linechart.common.axis.drawYAxisWithLabels
 import at.maximilianproell.linechart.common.calculations.dataToOffSet
+import at.maximilianproell.linechart.common.calculations.xValueOffset
 import at.maximilianproell.linechart.config.LineConfig
 import at.maximilianproell.linechart.config.LineConfigDefaults
 import at.maximilianproell.linechart.model.DataPoint
@@ -56,35 +57,13 @@ import com.google.accompanist.flowlayout.FlowRow
 @Composable
 fun LineChart(
     modifier: Modifier = Modifier,
-    dataPoints: () -> List<DataPoint>,
-    minVisibleYValue: Float,
-    maxVisibleYValue: Float,
-    color: Color,
-    strokeWidth: Dp = 1.dp,
-    axisConfig: AxisConfig = AxisConfigDefaults.axisConfigDefaults(),
-    lineConfig: LineConfig = LineConfigDefaults.lineConfigDefaults()
-) {
-    LineChart(
-        modifier = modifier,
-        lineDataSets = { listOf(LineDataSet(name = "", dataPoints = dataPoints(), lineColor = color)) },
-        minVisibleYValue = minVisibleYValue,
-        maxVisibleYValue = maxVisibleYValue,
-        strokeWidth = strokeWidth,
-        xAxisConfig = axisConfig,
-        lineConfig = lineConfig
-    )
-}
-
-@Composable
-fun LineChart(
-    modifier: Modifier = Modifier,
     lineDataSets: () -> List<LineDataSet>,
     minVisibleYValue: Float = 0f,
     maxVisibleYValue: Float,
     strokeWidth: Dp = 1.dp,
     circleRadius: Dp = 8.dp,
-    xAxisConfig: AxisConfig = AxisConfigDefaults.axisConfigDefaults(),
-    yAxisConfig: AxisConfig = AxisConfigDefaults.axisConfigDefaults(),
+    xAxisConfig: XAxisConfig = AxisConfigDefaults.xAxisConfigDefaults(),
+    yAxisConfig: YAxisConfig = AxisConfigDefaults.yAxisConfigDefaults(),
     lineConfig: LineConfig = LineConfigDefaults.lineConfigDefaults()
 ) {
     val style: TextStyle = xAxisConfig.labelTextStyle
@@ -110,23 +89,27 @@ fun LineChart(
                 .weight(1f)
                 .fillMaxWidth()
                 .clipToBounds()
-                .padding(top = circleRadius) // top padding for circle radius
                 .drawBehind {
-                    val drawingHeight = size.height - xAxisConfig.labelsOffset.toPx()
-                    val drawingWidth = size.width - circleRadius.toPx()
-
-                    val scaleFactor = drawingHeight.div(maxVisibleYValue - minVisibleYValue)
-                    val circleRadiusPx = circleRadius.toPx()
+                    val circleRadiusPx = if (lineConfig.showLineDots) circleRadius.toPx() else 0f
 
                     // We assume that the list of lineData points is sorted. Therefore, it is sufficient to get
                     // the first and last value.
                     val minXLineData = lineDataSets().minOfOrNull { it.dataPoints.firstOrNull()?.xValue ?: 0f } ?: 0f
                     val maxXLineData = lineDataSets().maxOfOrNull { it.dataPoints.lastOrNull()?.xValue ?: 0f } ?: 0f
 
+                    val xAxisLabelsYOffsetPx = xAxisConfig.labelsYOffset.toPx()
+                    val bottomLabelPadding = if (xAxisLabelsYOffsetPx > 0) {
+                        // Positive label padding, therefore bottom padding necessary.
+                        xAxisLabelsYOffsetPx
+                    } else 0f
+                    inset(
+                        left = circleRadiusPx,
+                        right = circleRadiusPx,
+                        top = circleRadiusPx,
+                        bottom = circleRadiusPx + bottomLabelPadding
+                    ) {
+                        val scaleFactor = size.height.div(maxVisibleYValue - minVisibleYValue)
 
-                    // todo: remove map and just draw labels based on "numberOfLabels" parameter given.
-                    // Using a map so we don't draw the same label more than once.
-                    val xLabelMap = buildMap<Any, List<Offset>> {
                         lineDataSets().forEach { lineDataSet ->
                             val path = Path()
                             val brush = SolidColor(lineDataSet.lineColor)
@@ -136,25 +119,10 @@ fun LineChart(
                                     dataPoint = data,
                                     minXLineData = minXLineData,
                                     maxXLineData = maxXLineData,
-                                    size = Size(drawingWidth, drawingHeight),
+                                    size = size,
                                     yScaleFactor = scaleFactor,
                                     minYValue = minVisibleYValue,
                                 )
-
-                                // Adding the value to the map.
-                                val label = xAxisConfig.labelsFormatter(data.xValue)
-                                if (label != "") {
-                                    val offsetList = putIfAbsent(
-                                        label,
-                                        listOf(centerOffset)
-                                    )
-                                    offsetList?.let {
-                                        put(
-                                            key = label,
-                                            value = it + centerOffset
-                                        )
-                                    }
-                                }
 
                                 if (lineDataSet.dataPoints.size > 1) {
                                     when (index) {
@@ -164,7 +132,7 @@ fun LineChart(
                                 }
 
                                 // Draw circle on every point.
-                                if (lineConfig.hasDotMarker ) {
+                                if (lineConfig.showLineDots) {
                                     drawCircle(
                                         center = centerOffset,
                                         radius = circleRadiusPx,
@@ -187,7 +155,7 @@ fun LineChart(
                                         dataPoint = lineDataSet.dataPoints.last(),
                                         minXLineData = minXLineData,
                                         maxXLineData = maxXLineData,
-                                        size = Size(drawingWidth, drawingHeight),
+                                        size = size,
                                         yScaleFactor = scaleFactor,
                                         minYValue = minVisibleYValue,
                                     )
@@ -195,22 +163,22 @@ fun LineChart(
                                         dataPoint = lineDataSet.dataPoints.first(),
                                         minXLineData = minXLineData,
                                         maxXLineData = maxXLineData,
-                                        size = Size(drawingWidth, drawingHeight),
+                                        size = size,
                                         yScaleFactor = scaleFactor,
                                         minYValue = minVisibleYValue,
                                     )
 
                                     val backgroundPath = path
                                         .apply {
-                                            lineTo(lastCenterOffset.x, drawingHeight)
-                                            lineTo(firstCenterOffset.x, drawingHeight)
+                                            lineTo(lastCenterOffset.x, size.height)
+                                            lineTo(firstCenterOffset.x, size.height)
                                             close()
                                         }
                                     drawPath(
                                         path = backgroundPath,
                                         brush = Brush.verticalGradient(
                                             colors = listOf(lineDataSet.lineColor, Color.Transparent),
-                                            endY = drawingHeight
+                                            endY = size.height
                                         ),
                                     )
                                 }
@@ -219,22 +187,33 @@ fun LineChart(
                     }
 
                     val labelColor = xAxisConfig.labelTextStyle.color.takeOrElse { fallbackTextColor }
-                    xLabelMap.forEach { (xLabel, centerOffsets) ->
-                        if (xAxisConfig.showLabels) {
-                            val averageXValue = centerOffsets
-                                .map { offset -> offset.x }
-                                .average()
-                                .toFloat()
+
+                    // Draw x labels
+                    val numberOfXLabels = xAxisConfig.numberOfLabels
+                    if (numberOfXLabels > 1) {
+                        val jumpSize = (maxXLineData - minXLineData) / (numberOfXLabels - 1)
+
+                        repeat(xAxisConfig.numberOfLabels) { index ->
+                            val xValue = minXLineData + jumpSize * index
+                            val xOffset = xValueOffset(
+                                xValue = xValue,
+                                minXLineData = minXLineData,
+                                maxXLineData = maxXLineData,
+                                size = size,
+                            )
+
                             drawXLabel(
-                                data = xLabel,
-                                xValue = averageXValue,
+                                data = xAxisConfig.labelsFormatter(xValue),
+                                textXPosition = xOffset,
+                                clipOnBorder = xAxisConfig.borderTextClippingEnabled,
                                 textColor = labelColor,
                                 typeface = captionTypeFace,
                                 textSize = xAxisConfig.labelTextStyle.fontSize.toPx(),
-                                yOffset = 0f
+                                bottomOffset = if (xAxisLabelsYOffsetPx > 0) 0f else xAxisLabelsYOffsetPx
                             )
                         }
                     }
+
                 }
         ) {
             if (yAxisConfig.showAxis) {
@@ -242,11 +221,11 @@ fun LineChart(
                     yAxisConfig,
                     minValue = minVisibleYValue,
                     maxValue = maxVisibleYValue,
-                    drawingHeight = size.height - yAxisConfig.labelsOffset.toPx(),
+                    drawingHeight = size.height - yAxisConfig.labelsXOffset.toPx(),
                     textColor = yAxisConfig.labelTextStyle.color,
                     typeface = captionTypeFace,
                     textSize = yAxisConfig.labelTextStyle.fontSize.toPx(),
-                    xLabelsOffset = yAxisConfig.labelsOffset.toPx()
+                    xLabelsOffset = yAxisConfig.labelsXOffset.toPx()
                 )
             }
         }
@@ -255,7 +234,7 @@ fun LineChart(
 
         if (legendEntries.isNotEmpty()) {
             ChartLegend(
-                modifier = Modifier.padding(horizontal = xAxisConfig.labelsOffset),
+                modifier = Modifier.padding(horizontal = yAxisConfig.labelsXOffset),
                 legendEntries = legendEntries
             )
         }
@@ -328,11 +307,11 @@ fun LineChartPreview() {
                         )
                     },
                     maxVisibleYValue = 30f,
-                    xAxisConfig = AxisConfigDefaults.axisConfigDefaults().copy(
-                        labelsOffset = 0.dp,
+                    xAxisConfig = AxisConfigDefaults.xAxisConfigDefaults().copy(
+                        labelsYOffset = 16.dp,
                         axisColor = Color.Black,
                     ),
-                    lineConfig = LineConfigDefaults.lineConfigDefaults()
+                    lineConfig = LineConfigDefaults.lineConfigDefaults().copy(showLineDots = false)
                 )
             }
         }
