@@ -18,12 +18,12 @@ internal fun DrawScope.drawYAxisWithLabels(
     drawingHeight: Float = size.height,
     drawingWidth: Float = size.width,
     xLabelsOffset: Float,
-    numberOfLabels: Int = 3,
     helperLinesStrokeWidth: Dp = 1.dp,
     textColor: Color = Color.Black,
     typeface: Typeface,
     textSize: Float = 16f
 ) {
+    val numberOfLabels = axisConfig.numberOfLabels
     val graphYAxisEndPoint = drawingHeight / (numberOfLabels - 1)
     val labelScaleFactor = (maxValue - minValue) / (numberOfLabels - 1)
 
@@ -66,18 +66,42 @@ internal fun DrawScope.drawYAxisWithLabels(
 
 internal fun DrawScope.drawXLabel(
     data: Any,
-    xValue: Float,
-    yOffset: Float,
+    textXPosition: Float,
+    clipOnBorder: Boolean,
+    bottomOffset: Float,
     textColor: Color,
     typeface: Typeface,
     textSize: Float = 16f
 ) {
     drawIntoCanvas {
         it.nativeCanvas.apply {
+            val textPaint = Paint().apply {
+                color = textColor.toArgb()
+                setTypeface(typeface)
+                setTextSize(textSize)
+                textAlign = Paint.Align.CENTER
+            }
+            val dataText = data.toString()
+
+            val clippedPosition = if (!clipOnBorder) {
+                val textWidth = textPaint.measureText(dataText)
+                val textHalved = textWidth / 2
+
+                 if (textXPosition - textHalved < 0) {
+                    // Text overshoots canvas on the left side.
+                    textXPosition + textHalved
+                } else if (textXPosition + textHalved > size.width) {
+                    // Text overshoots canvas on the right side.
+                    textXPosition - textHalved
+                } else {
+                    textXPosition
+                }
+            } else null
+
             drawText(
                 data.toString(),
-                xValue,
-                size.height + yOffset,
+                clippedPosition ?: textXPosition,
+                size.height + bottomOffset,
                 Paint().apply {
                     color = textColor.toArgb()
                     setTypeface(typeface)
