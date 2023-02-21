@@ -7,26 +7,86 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-data class AxisConfig(
-    val showAxis: Boolean,
-    val showLabels: Boolean,
-    val labelsFormatter: (Float) -> Any,
-    val axisColor: Color,
+interface AxisConfig {
     /**
-     * The offset of the labels on the axis.
+     * Whether a line should be drawn for this axis.
      */
-    val labelsOffset: Dp,
-    val labelTextStyle: TextStyle,
-)
+    val showAxis: Boolean
+
+    /**
+     * The number of labels to draw. If set to 0, no labels are drawn.
+     */
+    val numberOfLabels: Int
+
+    /**
+     * The labels formatter.
+     */
+    val labelsFormatter: (Float) -> Any
+
+    /**
+     * The line color of this axis.
+     */
+    val axisColor: Color
+
+    /**
+     * The text style of the labels on this axis.
+     */
+    val labelTextStyle: TextStyle
+}
+
+data class XAxisConfig(
+    override val showAxis: Boolean,
+    override val numberOfLabels: Int,
+    override val labelsFormatter: (Float) -> Any,
+    override val axisColor: Color,
+    override val labelTextStyle: TextStyle,
+
+    /**
+     * Whether the labels on the start/end of the chart should be clipped.
+     */
+    val borderTextClippingEnabled: Boolean,
+
+    /**
+     * The y offset of the labels on this X axis. A negative offset will move the labels up "inside" the chart, whereas
+     * a positive offset will move the labels down, "outside" of the chart.
+     */
+    val labelsYOffset: Dp
+
+) : AxisConfig
+
+data class YAxisConfig(
+    override val showAxis: Boolean,
+    override val numberOfLabels: Int,
+    override val labelsFormatter: (Float) -> Any,
+    override val axisColor: Color,
+    override val labelTextStyle: TextStyle,
+
+    // todo: make it similar to X axis implementation
+    /**
+     * The x offset of the labels on this Y axis.
+     */
+    val labelsXOffset: Dp
+) : AxisConfig
 
 object AxisConfigDefaults {
     @Composable
-    fun axisConfigDefaults() = AxisConfig(
+    fun xAxisConfigDefaults() = XAxisConfig(
         axisColor = Color.LightGray,
         showAxis = true,
-        showLabels = true,
+        numberOfLabels = 3,
         labelsFormatter = { it },
-        labelsOffset = 0.dp,
+        borderTextClippingEnabled = false,
+        labelsYOffset = 0.dp,
+        labelTextStyle = MaterialTheme.typography.labelSmall,
+    )
+
+    @Composable
+    fun yAxisConfigDefaults() = YAxisConfig(
+        axisColor = Color.LightGray,
+        showAxis = true,
+        numberOfLabels = 3,
+        labelsFormatter = { it },
+        labelsXOffset = 0.dp,
         labelTextStyle = MaterialTheme.typography.labelSmall,
     )
 }
