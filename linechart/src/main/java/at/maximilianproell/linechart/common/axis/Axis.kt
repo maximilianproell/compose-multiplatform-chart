@@ -10,9 +10,10 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import at.maximilianproell.linechart.common.calculations.xValueOffset
 
 internal fun DrawScope.drawYAxisWithLabels(
-    axisConfig: AxisConfig,
+    axisConfig: YAxisConfig,
     minValue: Float = 0f,
     maxValue: Float,
     drawingHeight: Float = size.height,
@@ -49,16 +50,51 @@ internal fun DrawScope.drawYAxisWithLabels(
             }
         }
 
-        // TODO: maybe add option so this can be set externally.
-        if (index != 0) { // Don't draw helper line on the top of the chart.
+        if (axisConfig.showLines && index != 0) { // Don't draw helper line on the top of the chart.
             // Draw helper lines for better visual perception of the data.
             drawLine(
                 start = Offset(x = 0f, y = yAxisEndPoint),
                 end = Offset(x = drawingWidth, y = yAxisEndPoint),
                 color = axisConfig.axisColor,
                 pathEffect = null,
-                alpha = 0.1F,
+                alpha = 0.4F,
                 strokeWidth = helperLinesStrokeWidth.toPx()
+            )
+        }
+    }
+}
+
+internal fun DrawScope.drawXAxisWithLabels(
+    minXLineData: Float,
+    maxXLineData: Float,
+    xAxisConfig: XAxisConfig,
+    labelColor: Color,
+    labelTypeFace: Typeface
+) {
+    val xAxisLabelsYOffsetPx = xAxisConfig.labelsYOffset.toPx()
+    val numberOfXLabels = xAxisConfig.numberOfLabels
+
+    // Draw labels
+    if (numberOfXLabels > 1) {
+        val jumpSize = (maxXLineData - minXLineData) / (numberOfXLabels - 1)
+
+        repeat(numberOfXLabels) { index ->
+            val xValue = minXLineData + jumpSize * index
+            val xOffset = xValueOffset(
+                xValue = xValue,
+                minXLineData = minXLineData,
+                maxXLineData = maxXLineData,
+                size = size,
+            )
+
+            drawXLabel(
+                data = xAxisConfig.labelsFormatter(xValue),
+                textXPosition = xOffset,
+                clipOnBorder = xAxisConfig.borderTextClippingEnabled,
+                textColor = labelColor,
+                typeface = labelTypeFace,
+                textSize = xAxisConfig.labelTextStyle.fontSize.toPx(),
+                bottomOffset = if (xAxisLabelsYOffsetPx > 0) 0f else xAxisLabelsYOffsetPx
             )
         }
     }

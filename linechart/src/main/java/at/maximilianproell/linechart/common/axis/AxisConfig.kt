@@ -9,11 +9,6 @@ import androidx.compose.ui.unit.dp
 
 interface AxisConfig {
     /**
-     * Whether a line should be drawn for this axis.
-     */
-    val showAxis: Boolean
-
-    /**
      * The number of labels to draw. If set to 0, no labels are drawn.
      */
     val numberOfLabels: Int
@@ -35,7 +30,6 @@ interface AxisConfig {
 }
 
 data class XAxisConfig(
-    override val showAxis: Boolean,
     override val numberOfLabels: Int,
     override val labelsFormatter: (Float) -> Any,
     override val axisColor: Color,
@@ -55,7 +49,10 @@ data class XAxisConfig(
 ) : AxisConfig
 
 data class YAxisConfig(
-    override val showAxis: Boolean,
+    /**
+     * Whether a horizontal line across the chart should be drawn for every y label.
+     */
+    val showLines: Boolean,
     override val numberOfLabels: Int,
     override val labelsFormatter: (Float) -> Any,
     override val axisColor: Color,
@@ -72,7 +69,6 @@ object AxisConfigDefaults {
     @Composable
     fun xAxisConfigDefaults() = XAxisConfig(
         axisColor = Color.LightGray,
-        showAxis = true,
         numberOfLabels = 3,
         labelsFormatter = { it },
         borderTextClippingEnabled = false,
@@ -83,7 +79,7 @@ object AxisConfigDefaults {
     @Composable
     fun yAxisConfigDefaults() = YAxisConfig(
         axisColor = Color.LightGray,
-        showAxis = true,
+        showLines = true,
         numberOfLabels = 3,
         labelsFormatter = { it },
         labelsXOffset = 0.dp,
