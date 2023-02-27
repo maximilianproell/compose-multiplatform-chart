@@ -16,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -194,12 +196,14 @@ fun LineChart(
             )
         }
 
-        val legendEntries = lineDataSets().map { it.toLegendEntry() }
+        val legendEntries = remember {
+            derivedStateOf { lineDataSets().map { it.toLegendEntry() } }
+        }
 
-        if (legendEntries.isNotEmpty()) {
+        if (legendEntries.value.isNotEmpty()) {
             ChartLegend(
                 modifier = Modifier.padding(horizontal = yAxisConfig.labelsXOffset.coerceAtLeast(0.dp)),
-                legendEntries = legendEntries
+                legendEntries = legendEntries.value
             )
         }
     }
