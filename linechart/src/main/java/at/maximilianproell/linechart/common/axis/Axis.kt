@@ -90,7 +90,7 @@ internal fun DrawScope.drawXAxisWithLabels(
             drawXLabel(
                 data = xAxisConfig.labelsFormatter(xValue),
                 textXPosition = xOffset,
-                clipOnBorder = xAxisConfig.borderTextClippingEnabled,
+                clipOnBorder = xAxisConfig.allowBorderTextClipping,
                 textColor = labelColor,
                 typeface = labelTypeFace,
                 textSize = xAxisConfig.labelTextStyle.fontSize.toPx(),

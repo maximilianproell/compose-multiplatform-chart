@@ -38,7 +38,7 @@ data class XAxisConfig(
     /**
      * Whether the labels on the start/end of the chart should be clipped.
      */
-    val borderTextClippingEnabled: Boolean,
+    val allowBorderTextClipping: Boolean,
 
     /**
      * The y offset of the labels on this X axis. A negative offset will move the labels up "inside" the chart, whereas
@@ -58,7 +58,6 @@ data class YAxisConfig(
     override val axisColor: Color,
     override val labelTextStyle: TextStyle,
 
-    // todo: make it similar to X axis implementation
     /**
      * The x offset of the labels on this Y axis.
      */
@@ -71,7 +70,7 @@ object AxisConfigDefaults {
         axisColor = Color.LightGray,
         numberOfLabels = 3,
         labelsFormatter = { it },
-        borderTextClippingEnabled = false,
+        allowBorderTextClipping = false,
         labelsYOffset = 0.dp,
         labelTextStyle = MaterialTheme.typography.labelSmall,
     )

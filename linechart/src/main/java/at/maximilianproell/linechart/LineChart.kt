@@ -72,6 +72,8 @@ fun LineChart(
                 .clipToBounds()
         ) {
             val circleRadiusPx = if (lineConfig.showLineDots) circleRadius.toPx() else 0f
+            val yAxisLabelsOffsetPx = yAxisConfig.labelsXOffset.toPx()
+            val yPaddingOffset = if (yAxisLabelsOffsetPx < 0f) yAxisLabelsOffsetPx * -1 else 0f
 
             // We assume that the list of lineData points is sorted. Therefore, it is sufficient to get
             // the first and last value.
@@ -84,7 +86,7 @@ fun LineChart(
                 xAxisLabelsYOffsetPx
             } else 0f
             inset(
-                left = circleRadiusPx,
+                left = circleRadiusPx + yPaddingOffset,
                 right = circleRadiusPx,
                 top = circleRadiusPx,
                 bottom = circleRadiusPx + bottomLabelPadding
@@ -196,7 +198,7 @@ fun LineChart(
 
         if (legendEntries.isNotEmpty()) {
             ChartLegend(
-                modifier = Modifier.padding(horizontal = yAxisConfig.labelsXOffset),
+                modifier = Modifier.padding(horizontal = yAxisConfig.labelsXOffset.coerceAtLeast(0.dp)),
                 legendEntries = legendEntries
             )
         }
@@ -270,12 +272,13 @@ fun LineChartPreview() {
                     },
                     maxVisibleYValue = 30f,
                     xAxisConfig = AxisConfigDefaults.xAxisConfigDefaults().copy(
-                        labelsYOffset = 16.dp,
+                        labelsYOffset = 8.dp,
                         axisColor = Color.Black,
+                        allowBorderTextClipping = true
                     ),
                     yAxisConfig = AxisConfigDefaults.yAxisConfigDefaults().copy(
                         numberOfLabels = 6,
-                        labelsXOffset = 16.dp
+                        labelsXOffset = 8.dp
                     ),
                     lineConfig = LineConfigDefaults.lineConfigDefaults().copy(showLineDots = false)
                 )
