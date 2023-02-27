@@ -17,9 +17,8 @@ class MainActivityViewModel @Inject constructor(
     val chartData = repository.observeChartData().map { chartData ->
         chartData.map {
             // Convert to data points
-            val currentTimestamp = System.currentTimeMillis()
             DataPoint(
-                xValue = (currentTimestamp - it.xTimestamp) / 1000f,
+                xValue = it.xTimestamp / 1000f,
                 yValue = it.y
             )
         }

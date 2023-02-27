@@ -23,6 +23,8 @@ class FakeChartDataRepository @Inject constructor(
     private val mutableSensorDataOfLastMinute: MutableList<ChartData> = mutableListOf()
     private val mutableChartFlow: MutableStateFlow<List<ChartData>> = MutableStateFlow(emptyList())
 
+    private val startTimestamp = System.currentTimeMillis()
+
     init {
         applicationCoroutineScope.launch {
             chartLocalDataSource.liveDataFlow(hz = 10).collect { value ->
@@ -30,7 +32,7 @@ class FakeChartDataRepository @Inject constructor(
                     mutableSensorDataOfLastMinute.removeFirst()
                 }
                 mutableSensorDataOfLastMinute.add(
-                    ChartData(System.currentTimeMillis(), value)
+                    ChartData(System.currentTimeMillis() - startTimestamp, value)
                 )
 
                 // update data
