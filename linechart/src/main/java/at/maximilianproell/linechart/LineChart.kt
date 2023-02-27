@@ -170,7 +170,7 @@ fun LineChart(
                     }
                 }
 
-                if (yAxisConfig.showLines) {
+                if (yAxisConfig.numberOfLabels > 1) {
                     drawYAxisWithLabels(
                         yAxisConfig,
                         minValue = minVisibleYValue,
