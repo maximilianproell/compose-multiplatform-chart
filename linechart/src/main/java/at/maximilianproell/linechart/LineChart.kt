@@ -54,7 +54,7 @@ fun LineChart(
     minVisibleYValue: Float = 0f,
     maxVisibleYValue: Float,
     strokeWidth: Dp = 1.dp,
-    circleRadius: Dp = 8.dp,
+    circleRadius: Dp = 4.dp,
     xAxisConfig: XAxisConfig = AxisConfigDefaults.xAxisConfigDefaults(),
     yAxisConfig: YAxisConfig = AxisConfigDefaults.yAxisConfigDefaults(),
     lineConfig: LineConfig = LineConfigDefaults.lineConfigDefaults()
@@ -187,13 +187,20 @@ fun LineChart(
             val labelColor = xAxisConfig.labelTextStyle.color.takeOrElse { fallbackTextColor }
 
             // Draw x labels
-            drawXAxisWithLabels(
-                minXLineData = minXLineData,
-                maxXLineData = maxXLineData,
-                xAxisConfig = xAxisConfig,
-                labelColor = labelColor,
-                labelTypeFace = xLabelTypeFace
-            )
+            inset(
+                left = yPaddingOffset,
+                right = 0f,
+                bottom = 0f,
+                top = 0f
+            ) {
+                drawXAxisWithLabels(
+                    minXLineData = minXLineData,
+                    maxXLineData = maxXLineData,
+                    xAxisConfig = xAxisConfig,
+                    labelColor = labelColor,
+                    labelTypeFace = xLabelTypeFace
+                )
+            }
         }
 
         val legendEntries = remember {
