@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
 }
 
 android {
@@ -49,4 +50,18 @@ dependencies {
 
     // Accompanist to add functionality for Jetpack Compose
     implementation "com.google.accompanist:accompanist-flowlayout:0.28.0"
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+
+                groupId = "com.github.maximilianproell"
+                artifactId = "live-linechart-compose"
+                version = "1.0"
+            }
+        }
+    }
 }
