@@ -54,7 +54,7 @@ fun LineChart(
     minVisibleYValue: Float = 0f,
     maxVisibleYValue: Float,
     strokeWidth: Dp = 1.dp,
-    circleRadius: Dp = 8.dp,
+    circleRadius: Dp = 4.dp,
     xAxisConfig: XAxisConfig = AxisConfigDefaults.xAxisConfigDefaults(),
     yAxisConfig: YAxisConfig = AxisConfigDefaults.yAxisConfigDefaults(),
     lineConfig: LineConfig = LineConfigDefaults.lineConfigDefaults()
@@ -175,7 +175,7 @@ fun LineChart(
                         yAxisConfig,
                         minValue = minVisibleYValue,
                         maxValue = maxVisibleYValue,
-                        drawingHeight = size.height - yAxisConfig.labelsXOffset.toPx(),
+                        drawingHeight = size.height,
                         textColor = yAxisConfig.labelTextStyle.color.takeOrElse { fallbackTextColor },
                         typeface = yLabelTypeFace,
                         textSize = yAxisConfig.labelTextStyle.fontSize.toPx(),
@@ -187,13 +187,20 @@ fun LineChart(
             val labelColor = xAxisConfig.labelTextStyle.color.takeOrElse { fallbackTextColor }
 
             // Draw x labels
-            drawXAxisWithLabels(
-                minXLineData = minXLineData,
-                maxXLineData = maxXLineData,
-                xAxisConfig = xAxisConfig,
-                labelColor = labelColor,
-                labelTypeFace = xLabelTypeFace
-            )
+            inset(
+                left = yPaddingOffset,
+                right = 0f,
+                bottom = 0f,
+                top = 0f
+            ) {
+                drawXAxisWithLabels(
+                    minXLineData = minXLineData,
+                    maxXLineData = maxXLineData,
+                    xAxisConfig = xAxisConfig,
+                    labelColor = labelColor,
+                    labelTypeFace = xLabelTypeFace
+                )
+            }
         }
 
         val legendEntries = remember {
@@ -254,7 +261,7 @@ fun LineChartPreview() {
                                 dataPoints = listOf(
                                     DataPoint(10F, 20F),
                                     DataPoint(20F, 15F),
-                                    DataPoint(30F, 5F),
+                                    DataPoint(30F, 6F),
                                     DataPoint(60F, 13F),
                                     DataPoint(80F, 0F),
                                     DataPoint(100F, 10F),
@@ -276,9 +283,9 @@ fun LineChartPreview() {
                     },
                     maxVisibleYValue = 30f,
                     xAxisConfig = AxisConfigDefaults.xAxisConfigDefaults().copy(
-                        labelsYOffset = 8.dp,
+                        labelsYOffset = 12.dp,
                         axisColor = Color.Black,
-                        allowBorderTextClipping = true
+                        allowBorderTextClipping = false
                     ),
                     yAxisConfig = AxisConfigDefaults.yAxisConfigDefaults().copy(
                         numberOfLabels = 6,
