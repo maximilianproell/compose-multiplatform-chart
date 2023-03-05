@@ -17,7 +17,7 @@ Next, add the library dependency to your app build.gradle:
 ```gradle
 dependencies {
     ...
-    implementation 'com.github.maximilianproell:compose-live-line-chart:1.0'
+    implementation 'com.github.maximilianproell:compose-live-line-chart:1.1'
 }
 ```
 
