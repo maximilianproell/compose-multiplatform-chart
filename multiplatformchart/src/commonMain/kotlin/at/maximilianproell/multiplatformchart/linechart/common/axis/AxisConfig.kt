@@ -1,4 +1,4 @@
-package at.maximilianproell.linechart.common.axis
+package at.maximilianproell.multiplatformchart.linechart.common.axis
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package at.maximilianproell.linechart.common.dimens
+package at.maximilianproell.multiplatformchart.linechart.common.dimens
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp

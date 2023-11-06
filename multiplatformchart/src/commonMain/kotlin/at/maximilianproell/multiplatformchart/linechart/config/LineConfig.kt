@@ -1,4 +1,4 @@
-package at.maximilianproell.linechart.config
+package at.maximilianproell.multiplatformchart.linechart.config
 
 data class LineConfig(
     val hasSmoothCurve: Boolean,

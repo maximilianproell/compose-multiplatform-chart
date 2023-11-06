@@ -1,4 +1,4 @@
-package at.maximilianproell.linechart.model
+package at.maximilianproell.multiplatformchart.linechart.model
 
 /**
  * Represents a data point in the line chart.

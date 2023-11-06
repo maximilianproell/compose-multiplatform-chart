@@ -1,8 +1,8 @@
-package at.maximilianproell.linechart.common.calculations
+package at.maximilianproell.multiplatformchart.linechart.common.calculations
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import at.maximilianproell.linechart.model.DataPoint
+import at.maximilianproell.multiplatformchart.linechart.model.DataPoint
 
 internal fun dataToOffSet(
     dataPoint: DataPoint,

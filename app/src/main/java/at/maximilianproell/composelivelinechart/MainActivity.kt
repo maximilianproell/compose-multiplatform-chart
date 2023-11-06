@@ -15,9 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import at.maximilianproell.composelivelinechart.ui.theme.ComposeLiveLinechartTheme
-import at.maximilianproell.linechart.LineChart
-import at.maximilianproell.linechart.common.axis.AxisConfigDefaults
-import at.maximilianproell.linechart.config.LineConfigDefaults
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToLong
 
@@ -32,25 +29,28 @@ class MainActivity : ComponentActivity() {
                 val chartData by viewModel.chartData.collectAsState(initial = emptyList())
 
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    LineChart(
+                    at.maximilianproell.multiplatformchart.linechart.LineChart(
                         modifier = Modifier.padding(16.dp),
                         lineDataSets = { chartData },
                         minVisibleYValue = 40f,
                         maxVisibleYValue = 80f,
-                        lineConfig = LineConfigDefaults.lineConfigDefaults().copy(
-                            showLineDots = false,
-                        ),
-                        xAxisConfig = AxisConfigDefaults.xAxisConfigDefaults().copy(
-                            numberOfLabels = 2,
-                            labelsFormatter = { xValue ->
-                                DateUtils.formatElapsedTime(xValue.roundToLong())
-                            },
-                            labelsYOffset = 16.dp
-                        ),
-                        yAxisConfig = AxisConfigDefaults.yAxisConfigDefaults().copy(
-                            showLines = false,
-                            numberOfLabels = 5
-                        )
+                        lineConfig = at.maximilianproell.multiplatformchart.linechart.config.LineConfigDefaults.lineConfigDefaults()
+                            .copy(
+                                showLineDots = false,
+                            ),
+                        xAxisConfig = at.maximilianproell.multiplatformchart.linechart.common.axis.AxisConfigDefaults.xAxisConfigDefaults()
+                            .copy(
+                                numberOfLabels = 2,
+                                labelsFormatter = { xValue ->
+                                    DateUtils.formatElapsedTime(xValue.roundToLong())
+                                },
+                                labelsYOffset = 16.dp
+                            ),
+                        yAxisConfig = at.maximilianproell.multiplatformchart.linechart.common.axis.AxisConfigDefaults.yAxisConfigDefaults()
+                            .copy(
+                                showLines = false,
+                                numberOfLabels = 5
+                            )
                     )
                 }
             }

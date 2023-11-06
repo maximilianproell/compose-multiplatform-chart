@@ -1,4 +1,4 @@
-package at.maximilianproell.linechart.model
+package at.maximilianproell.multiplatformchart.linechart.model
 
 import androidx.compose.ui.graphics.Color
 
