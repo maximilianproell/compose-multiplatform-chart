@@ -1,0 +1,30 @@
+[versions]
+activityCompose = "1.8.0"
+compose = "1.5.3"
+androidComposeBom = "2023.10.01"
+androidxCore = "1.12.0"
+lifecycleRuntime = "2.6.2"
+kotlin = "1.9.10"
+daggerHilt = "2.48.1"
+agp = "8.1.2"
+material3 = "1.1.2"
+
+[libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidComposeBom" }
+androidx-compose-foundation = { module = "androidx.compose.foundation:foundation"}
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling"}
+androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntime" }
+dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "daggerHilt" }
+dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "daggerHilt" }
+
+[plugins]
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "daggerHilt" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
