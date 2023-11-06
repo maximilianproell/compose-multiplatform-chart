@@ -17,14 +17,14 @@ class MainActivityViewModel @Inject constructor(
     val chartData = repository.observeChartData().map { chartData ->
         chartData.map {
             // Convert to data points
-            at.maximilianproell.multiplatformchart.linechart.model.DataPoint(
+            DataPoint(
                 xValue = it.xTimestamp / 1000f,
                 yValue = it.y
             )
         }
     }.map { dataPoints ->
         listOf(
-            at.maximilianproell.multiplatformchart.linechart.model.LineDataSet(
+            LineDataSet(
                 name = "Demo data",
                 dataPoints = dataPoints,
                 lineColor = Color.Red

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import at.maximilianproell.composelivelinechart.ui.theme.ComposeLiveLinechartTheme
+import at.maximilianproell.multiplatformchart.linechart.LineChart
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToLong
 
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
                 val chartData by viewModel.chartData.collectAsState(initial = emptyList())
 
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    at.maximilianproell.multiplatformchart.linechart.LineChart(
+                    LineChart(
                         modifier = Modifier.padding(16.dp),
                         lineDataSets = { chartData },
                         minVisibleYValue = 40f,

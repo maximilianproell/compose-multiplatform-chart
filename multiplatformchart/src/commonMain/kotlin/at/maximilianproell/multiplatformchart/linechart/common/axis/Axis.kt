@@ -30,19 +30,17 @@ internal fun DrawScope.drawYAxisWithLabels(
         val isLabelTopmost = index == 0
         val yAxisEndPoint = if (isLabelTopmost) textSize else graphYAxisEndPoint * index
 
-        drawIntoCanvas {
-            drawText(
-                textMeasurer = textMeasurer,
-                text = axisConfig.labelsFormatter(
-                    minValue + labelScaleFactor * (numberOfLabels - 1 - index)
-                ).toString(),
-                topLeft = Offset(
-                    x = xLabelsOffset,
-                    y = yAxisEndPoint - (if (isLabelTopmost) 0f else helperLinesStrokeWidth.toPx())
-                ),
-                style = textStyle,
-            )
-        }
+        drawText(
+            textMeasurer = textMeasurer,
+            text = axisConfig.labelsFormatter(
+                minValue + labelScaleFactor * (numberOfLabels - 1 - index)
+            ).toString(),
+            topLeft = Offset(
+                x = xLabelsOffset,
+                y = yAxisEndPoint - (if (isLabelTopmost) 0f else helperLinesStrokeWidth.toPx())
+            ),
+            style = textStyle,
+        )
 
         if (axisConfig.showLines && index != 0) { // Don't draw helper line on the top of the chart.
             // Draw helper lines for better visual perception of the data.
@@ -120,7 +118,7 @@ internal fun DrawScope.drawXLabel(
 
         drawText(
             textMeasurer = textMeasurer,
-            text = data.toString(),
+            text = dataText,
             topLeft = Offset(
                 x = clippedPosition ?: textXPosition,
                 y = size.height + bottomOffset

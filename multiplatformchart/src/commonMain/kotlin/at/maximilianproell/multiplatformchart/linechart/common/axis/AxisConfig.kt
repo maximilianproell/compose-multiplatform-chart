@@ -1,5 +1,6 @@
 package at.maximilianproell.multiplatformchart.linechart.common.axis
 
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -72,7 +73,7 @@ object AxisConfigDefaults {
         labelsFormatter = { it },
         allowBorderTextClipping = false,
         labelsYOffset = 0.dp,
-        labelTextStyle = MaterialTheme.typography.labelSmall,
+        labelTextStyle = MaterialTheme.typography.labelSmall.copy(color = LocalContentColor.current),
     )
 
     @Composable
@@ -82,6 +83,6 @@ object AxisConfigDefaults {
         numberOfLabels = 3,
         labelsFormatter = { it },
         labelsXOffset = 0.dp,
-        labelTextStyle = MaterialTheme.typography.labelSmall,
+        labelTextStyle = MaterialTheme.typography.labelSmall.copy(color = LocalContentColor.current),
     )
 }
