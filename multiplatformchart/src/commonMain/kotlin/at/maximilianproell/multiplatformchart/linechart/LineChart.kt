@@ -168,9 +168,7 @@ fun LineChart(
                         minValue = minVisibleYValue,
                         maxValue = maxVisibleYValue,
                         drawingHeight = size.height,
-                        textStyle = yAxisConfig.labelTextStyle,
                         textMeasurer = textMeasurer,
-                        xLabelsOffset = yAxisConfig.labelsXOffset.toPx()
                     )
                 }
             }
@@ -187,7 +185,6 @@ fun LineChart(
                     maxXLineData = maxXLineData,
                     xAxisConfig = xAxisConfig,
                     textMeasurer = textMeasurer,
-                    textStyle = xAxisConfig.labelTextStyle,
                 )
             }
         }

@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.maximilianproell.composelivelinechart.ui.theme.ComposeLiveLinechartTheme
+import at.maximilianproell.multiplatformchart.barchart.BarChart
+import at.maximilianproell.multiplatformchart.barchart.common.model.BarChartEntry
 import at.maximilianproell.multiplatformchart.linechart.LineChart
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToLong
@@ -27,7 +29,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComposeLiveLinechartTheme {
-                val chartData by viewModel.chartData.collectAsState(initial = emptyList())
+                val chartData by viewModel.chartData.collectAsStateWithLifecycle(initialValue = emptyList())
 
                 Surface(modifier = Modifier.fillMaxSize()) {
                     LineChart(
@@ -61,8 +63,20 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
+fun BarChartPreview() {
     ComposeLiveLinechartTheme {
-
+        Surface {
+            BarChart(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                entries = listOf(
+                    BarChartEntry("MO", 25f),
+                    BarChartEntry("DI", 50f),
+                    BarChartEntry("MI", 30f),
+                    BarChartEntry("DO", 60f),
+                ),
+                maxYValue = 60f,
+                animate = false,
+            )
+        }
     }
 }

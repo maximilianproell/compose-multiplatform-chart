@@ -2,12 +2,11 @@ package at.maximilianproell.multiplatformchart.linechart.common.axis
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import at.maximilianproell.multiplatformchart.common.drawXLabel
 import at.maximilianproell.multiplatformchart.linechart.common.calculations.xValueOffset
 
 internal fun DrawScope.drawYAxisWithLabels(
@@ -16,15 +15,13 @@ internal fun DrawScope.drawYAxisWithLabels(
     maxValue: Float,
     drawingHeight: Float = size.height,
     drawingWidth: Float = size.width,
-    xLabelsOffset: Float,
     helperLinesStrokeWidth: Dp = 1.dp,
-    textStyle: TextStyle,
     textMeasurer: TextMeasurer,
 ) {
     val numberOfLabels = axisConfig.numberOfLabels
     val graphYAxisEndPoint = drawingHeight / (numberOfLabels - 1)
     val labelScaleFactor = (maxValue - minValue) / (numberOfLabels - 1)
-    val textSize = textStyle.fontSize.toPx()
+    val textSize = axisConfig.labelTextStyle.fontSize.toPx()
 
     repeat(numberOfLabels) { index ->
         val isLabelTopmost = index == 0
@@ -36,10 +33,10 @@ internal fun DrawScope.drawYAxisWithLabels(
                 minValue + labelScaleFactor * (numberOfLabels - 1 - index)
             ).toString(),
             topLeft = Offset(
-                x = xLabelsOffset,
+                x = axisConfig.labelsXOffset.toPx(),
                 y = yAxisEndPoint - (if (isLabelTopmost) 0f else helperLinesStrokeWidth.toPx())
             ),
-            style = textStyle,
+            style = axisConfig.labelTextStyle,
         )
 
         if (axisConfig.showLines && index != 0) { // Don't draw helper line on the top of the chart.
@@ -60,7 +57,6 @@ internal fun DrawScope.drawXAxisWithLabels(
     minXLineData: Float,
     maxXLineData: Float,
     xAxisConfig: XAxisConfig,
-    textStyle: TextStyle,
     textMeasurer: TextMeasurer,
 ) {
     val xAxisLabelsYOffsetPx = xAxisConfig.labelsYOffset.toPx()
@@ -81,49 +77,13 @@ internal fun DrawScope.drawXAxisWithLabels(
 
             drawXLabel(
                 data = xAxisConfig.labelsFormatter(xValue),
-                textXPosition = xOffset,
+                centerTextXPosition = xOffset,
                 clipOnBorder = xAxisConfig.allowBorderTextClipping,
                 bottomOffset = if (xAxisLabelsYOffsetPx > 0) 0f else xAxisLabelsYOffsetPx,
-                textStyle = textStyle,
+                textStyle = xAxisConfig.labelTextStyle,
                 textMeasurer = textMeasurer,
             )
         }
     }
 }
 
-internal fun DrawScope.drawXLabel(
-    data: Any,
-    textXPosition: Float,
-    clipOnBorder: Boolean,
-    bottomOffset: Float,
-    textStyle: TextStyle,
-    textMeasurer: TextMeasurer,
-) {
-    drawIntoCanvas {
-        val dataText = data.toString()
-        val clippedPosition = if (!clipOnBorder) {
-            val textWidth = textMeasurer.measure(text = dataText, style = textStyle).size.width
-            val textHalved = textWidth / 2
-
-            if (textXPosition - textHalved < 0) {
-                // Text overshoots canvas on the left side.
-                textXPosition + textHalved
-            } else if (textXPosition + textHalved > size.width) {
-                // Text overshoots canvas on the right side.
-                textXPosition - textHalved
-            } else {
-                textXPosition
-            }
-        } else null
-
-        drawText(
-            textMeasurer = textMeasurer,
-            text = dataText,
-            topLeft = Offset(
-                x = clippedPosition ?: textXPosition,
-                y = size.height + bottomOffset
-            ),
-            style = textStyle,
-        )
-    }
-}
