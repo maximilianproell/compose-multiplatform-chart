@@ -1,4 +1,4 @@
-package at.maximilianproell.multiplatformchart.linechart.common.axis
+package at.maximilianproell.multiplatformchart.common
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -6,11 +6,9 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import at.maximilianproell.multiplatformchart.common.drawXLabel
-import at.maximilianproell.multiplatformchart.linechart.common.calculations.xValueOffset
 
 internal fun DrawScope.drawYAxisWithLabels(
-    axisConfig: YAxisConfig,
+    axisConfig: LabeledYAxisConfig,
     minValue: Float = 0f,
     maxValue: Float,
     drawingHeight: Float = size.height,
@@ -56,7 +54,7 @@ internal fun DrawScope.drawYAxisWithLabels(
 internal fun DrawScope.drawXAxisWithLabels(
     minXLineData: Float,
     maxXLineData: Float,
-    xAxisConfig: XAxisConfig,
+    xAxisConfig: LabeledXAxisConfig,
     textMeasurer: TextMeasurer,
 ) {
     val xAxisLabelsYOffsetPx = xAxisConfig.labelsYOffset.toPx()
@@ -70,8 +68,8 @@ internal fun DrawScope.drawXAxisWithLabels(
             val xValue = minXLineData + jumpSize * index
             val xOffset = xValueOffset(
                 xValue = xValue,
-                minXLineData = minXLineData,
-                maxXLineData = maxXLineData,
+                minXData = minXLineData,
+                maxXData = maxXLineData,
                 size = size,
             )
 

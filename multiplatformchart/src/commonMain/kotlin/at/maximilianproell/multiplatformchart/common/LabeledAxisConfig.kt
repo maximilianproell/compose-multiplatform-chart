@@ -1,4 +1,4 @@
-package at.maximilianproell.multiplatformchart.linechart.common.axis
+package at.maximilianproell.multiplatformchart.common
 
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -8,7 +8,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-interface AxisConfig {
+interface LabeledAxisConfig {
     /**
      * The number of labels to draw. If set to 0, no labels are drawn.
      */
@@ -30,7 +30,7 @@ interface AxisConfig {
     val labelTextStyle: TextStyle
 }
 
-data class XAxisConfig(
+data class LabeledXAxisConfig(
     override val numberOfLabels: Int,
     override val labelsFormatter: (Float) -> Any,
     override val axisColor: Color,
@@ -47,9 +47,9 @@ data class XAxisConfig(
      */
     val labelsYOffset: Dp
 
-) : AxisConfig
+) : LabeledAxisConfig
 
-data class YAxisConfig(
+data class LabeledYAxisConfig(
     /**
      * Whether a horizontal line across the chart should be drawn for every y label.
      */
@@ -63,11 +63,11 @@ data class YAxisConfig(
      * The x offset of the labels on this Y axis.
      */
     val labelsXOffset: Dp
-) : AxisConfig
+) : LabeledAxisConfig
 
 object AxisConfigDefaults {
     @Composable
-    fun xAxisConfigDefaults() = XAxisConfig(
+    fun xAxisConfigDefaults() = LabeledXAxisConfig(
         axisColor = Color.LightGray,
         numberOfLabels = 3,
         labelsFormatter = { it },
@@ -77,7 +77,7 @@ object AxisConfigDefaults {
     )
 
     @Composable
-    fun yAxisConfigDefaults() = YAxisConfig(
+    fun yAxisConfigDefaults() = LabeledYAxisConfig(
         axisColor = Color.LightGray,
         showLines = true,
         numberOfLabels = 3,

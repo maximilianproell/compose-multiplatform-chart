@@ -29,12 +29,12 @@ import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import at.maximilianproell.multiplatformchart.linechart.common.axis.AxisConfigDefaults
-import at.maximilianproell.multiplatformchart.linechart.common.axis.XAxisConfig
-import at.maximilianproell.multiplatformchart.linechart.common.axis.YAxisConfig
-import at.maximilianproell.multiplatformchart.linechart.common.axis.drawXAxisWithLabels
-import at.maximilianproell.multiplatformchart.linechart.common.axis.drawYAxisWithLabels
-import at.maximilianproell.multiplatformchart.linechart.common.calculations.dataToOffSet
+import at.maximilianproell.multiplatformchart.common.AxisConfigDefaults
+import at.maximilianproell.multiplatformchart.common.LabeledXAxisConfig
+import at.maximilianproell.multiplatformchart.common.LabeledYAxisConfig
+import at.maximilianproell.multiplatformchart.common.drawXAxisWithLabels
+import at.maximilianproell.multiplatformchart.common.drawYAxisWithLabels
+import at.maximilianproell.multiplatformchart.linechart.utils.dataToOffSet
 import at.maximilianproell.multiplatformchart.linechart.config.LineConfig
 import at.maximilianproell.multiplatformchart.linechart.config.LineConfigDefaults
 import at.maximilianproell.multiplatformchart.linechart.model.LegendEntry
@@ -49,8 +49,8 @@ fun LineChart(
     maxVisibleYValue: Float,
     strokeWidth: Dp = 1.dp,
     circleRadius: Dp = 4.dp,
-    xAxisConfig: XAxisConfig = AxisConfigDefaults.xAxisConfigDefaults(),
-    yAxisConfig: YAxisConfig = AxisConfigDefaults.yAxisConfigDefaults(),
+    xAxisConfig: LabeledXAxisConfig = AxisConfigDefaults.xAxisConfigDefaults(),
+    yAxisConfig: LabeledYAxisConfig = AxisConfigDefaults.yAxisConfigDefaults(),
     lineConfig: LineConfig = LineConfigDefaults.lineConfigDefaults()
 ) {
     val textMeasurer = rememberTextMeasurer()

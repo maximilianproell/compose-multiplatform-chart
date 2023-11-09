@@ -7,26 +7,22 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import at.maximilianproell.multiplatformchart.barchart.common.model.BarChartEntry
+import at.maximilianproell.multiplatformchart.barchart.config.BarConfig
+import at.maximilianproell.multiplatformchart.barchart.config.BarConfigDefaults.defaultBarConfig
+import at.maximilianproell.multiplatformchart.barchart.model.BarChartEntry
+import at.maximilianproell.multiplatformchart.common.AxisConfigDefaults.yAxisConfigDefaults
+import at.maximilianproell.multiplatformchart.common.LabeledYAxisConfig
 import at.maximilianproell.multiplatformchart.common.drawXLabel
-import at.maximilianproell.multiplatformchart.linechart.common.axis.AxisConfigDefaults.yAxisConfigDefaults
-import at.maximilianproell.multiplatformchart.linechart.common.axis.drawYAxisWithLabels
+import at.maximilianproell.multiplatformchart.common.drawYAxisWithLabels
 import kotlin.math.ceil
 
 /**
@@ -37,16 +33,11 @@ fun BarChart(
     modifier: Modifier = Modifier,
     entries: List<BarChartEntry>,
     maxYValue: Float,
-    barColor: Color = MaterialTheme.colorScheme.onBackground,
-    labelTextStyle: TextStyle = MaterialTheme.typography.labelSmall.copy(
-        color = LocalContentColor.current
-    ), // TODO: create dedicated xAxisConfig,
-    barWidthDp: Dp = 12.dp,
-    animate: Boolean = true,
-    axisColor: Color = MaterialTheme.colorScheme.onBackground,
-    labelTextSize: TextUnit = 12.sp
+    barConfig: BarConfig = defaultBarConfig,
+    yAxisConfig: LabeledYAxisConfig = yAxisConfigDefaults(),
+    xLabelsTextStyle: TextStyle = yAxisConfig.labelTextStyle,
 ) {
-    val barPercentageHeights = if (animate) {
+    val barPercentageHeights = if (barConfig.animate) {
         val currentAnimationState = remember(entries) {
             MutableTransitionState(true).apply {
                 targetState = false
@@ -73,19 +64,18 @@ fun BarChart(
         }
     } else entries.map { mutableStateOf(it.yValue / maxYValue) }
 
-    val yAxisDefault = yAxisConfigDefaults()
     val textMeasurer = rememberTextMeasurer()
 
     Canvas(
         modifier = modifier.fillMaxSize()
     ) {
-        val xLabelsHeight = labelTextStyle.lineHeight.toPx() * 1.2f
+        val xLabelsHeight = xLabelsTextStyle.lineHeight.toPx() * 1.2f
         fun getBarSpacing(): Float {
-            val sizeOccupiedByBars = barWidthDp.toPx() * entries.size
+            val sizeOccupiedByBars = barConfig.barWidth.toPx() * entries.size
             return (size.width - sizeOccupiedByBars) / (entries.size - 1)
         }
 
-        fun getBarOffsetAtIndex(index: Int) = (getBarSpacing() + barWidthDp.toPx()) * index
+        fun getBarOffsetAtIndex(index: Int) = (getBarSpacing() + barConfig.barWidth.toPx()) * index
 
         inset(
             bottom = xLabelsHeight,
@@ -100,15 +90,15 @@ fun BarChart(
                 val barHeight = barPercentageHeights[index].value * canvasHeight
                 val currentBarOffset = getBarOffsetAtIndex(index)
                 drawRect(
-                    color = barColor,
-                    size = Size(width = barWidthDp.toPx(), height = barHeight),
+                    color = barConfig.barColor,
+                    size = Size(width = barConfig.barWidth.toPx(), height = barHeight),
                     topLeft = Offset(currentBarOffset, canvasHeight - barHeight)
                 )
             }
 
-            // X-Axis
+            // Y-Axis
             drawYAxisWithLabels(
-                axisConfig = yAxisDefault,
+                axisConfig = yAxisConfig,
                 maxValue = ceil(maxYValue),
                 textMeasurer = textMeasurer
             )
@@ -119,10 +109,10 @@ fun BarChart(
             drawXLabel(
                 data = dataPoint.xValue,
                 // Adding half the bar width so text is centered.
-                centerTextXPosition = getBarOffsetAtIndex(index = index) + barWidthDp.toPx() / 2,
+                centerTextXPosition = getBarOffsetAtIndex(index = index) + barConfig.barWidth.toPx() / 2,
                 clipOnBorder = false,
                 bottomOffset = -xLabelsHeight,
-                textStyle = labelTextStyle,
+                textStyle = xLabelsTextStyle,
                 textMeasurer = textMeasurer,
             )
         }

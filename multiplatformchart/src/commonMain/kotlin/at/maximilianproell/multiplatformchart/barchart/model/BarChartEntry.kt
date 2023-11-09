@@ -1,4 +1,4 @@
-package at.maximilianproell.multiplatformchart.barchart.common.model
+package at.maximilianproell.multiplatformchart.barchart.model
 
 /**
  * Represents an entry (i.e., a bar) in a bar chart.

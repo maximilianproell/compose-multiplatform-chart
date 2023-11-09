@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import at.maximilianproell.composelivelinechart.ui.theme.ComposeLiveLinechartTheme
 import at.maximilianproell.multiplatformchart.barchart.BarChart
-import at.maximilianproell.multiplatformchart.barchart.common.model.BarChartEntry
+import at.maximilianproell.multiplatformchart.barchart.config.BarConfigDefaults.defaultBarConfig
+import at.maximilianproell.multiplatformchart.barchart.model.BarChartEntry
+import at.maximilianproell.multiplatformchart.common.AxisConfigDefaults
 import at.maximilianproell.multiplatformchart.linechart.LineChart
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToLong
@@ -41,7 +43,7 @@ class MainActivity : ComponentActivity() {
                             .copy(
                                 showLineDots = false,
                             ),
-                        xAxisConfig = at.maximilianproell.multiplatformchart.linechart.common.axis.AxisConfigDefaults.xAxisConfigDefaults()
+                        xAxisConfig = AxisConfigDefaults.xAxisConfigDefaults()
                             .copy(
                                 numberOfLabels = 2,
                                 labelsFormatter = { xValue ->
@@ -49,7 +51,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 labelsYOffset = 16.dp
                             ),
-                        yAxisConfig = at.maximilianproell.multiplatformchart.linechart.common.axis.AxisConfigDefaults.yAxisConfigDefaults()
+                        yAxisConfig = AxisConfigDefaults.yAxisConfigDefaults()
                             .copy(
                                 showLines = false,
                                 numberOfLabels = 5
@@ -75,7 +77,7 @@ fun BarChartPreview() {
                     BarChartEntry("DO", 60f),
                 ),
                 maxYValue = 60f,
-                animate = false,
+                barConfig = defaultBarConfig.copy(animate = false),
             )
         }
     }

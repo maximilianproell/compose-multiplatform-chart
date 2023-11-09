@@ -1,7 +1,8 @@
-package at.maximilianproell.multiplatformchart.linechart.common.calculations
+package at.maximilianproell.multiplatformchart.linechart.utils
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import at.maximilianproell.multiplatformchart.common.xValueOffset
 import at.maximilianproell.multiplatformchart.linechart.model.DataPoint
 
 internal fun dataToOffSet(
@@ -14,8 +15,8 @@ internal fun dataToOffSet(
 ): Offset {
     val xOnCanvas = xValueOffset(
         xValue = dataPoint.xValue,
-        minXLineData = minXLineData,
-        maxXLineData = maxXLineData,
+        minXData = minXLineData,
+        maxXData = maxXLineData,
         size = size
     )
 
@@ -23,13 +24,3 @@ internal fun dataToOffSet(
     return Offset(xOnCanvas, y)
 }
 
-internal fun xValueOffset(
-    xValue: Float,
-    minXLineData: Float,
-    maxXLineData: Float,
-    size: Size,
-): Float {
-    val length = if (maxXLineData == minXLineData) 1f else maxXLineData - minXLineData
-    val normalizedX = (xValue - minXLineData) / length
-    return normalizedX * size.width
-}
