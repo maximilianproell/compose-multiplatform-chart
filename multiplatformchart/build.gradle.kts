@@ -11,28 +11,25 @@ kotlin {
     androidTarget {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
+                jvmTarget = "17"
             }
         }
+
+        publishLibraryVariants("release", "debug")
     }
 
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach {
-        it.binaries.framework {
-            baseName = "multiplatformchart"
-        }
-    }
+    ios{}
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material3)
-                implementation(compose.animation)
+                api(compose.runtime)
+                api(compose.foundation)
+                api(compose.material3)
+                api(compose.animation)
 
                 implementation(libs.kotlinx.atomicfu)
             }
@@ -42,11 +39,29 @@ kotlin {
                 //implementation(libs.kotlin.test)
             }
         }
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
+        val iosMain by getting {
+            dependsOn(commonMain)
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
+        }
     }
 }
 
 android {
     namespace = "at.maximilianproell.multiplatformchart"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlin {
+        jvmToolchain(17)
+    }
+
     compileSdk = 34
     defaultConfig {
         minSdk = 26
@@ -57,10 +72,8 @@ mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.S01, true)
 
     signAllPublications()
-}
 
-mavenPublishing {
-    coordinates("io.github.maximilianproell", "compose-multiplatform-chart", "2.0.0")
+    coordinates("io.github.maximilianproell", "compose-multiplatform-chart", "2.0.2-SNAPSHOT")
 
     pom {
         name.set("Compose Multiplatform Chart")
