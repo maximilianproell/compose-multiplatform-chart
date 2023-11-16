@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'at.maximilianproell.composelivelinechart'
+    namespace 'at.maximilianproell.multiplatformchart.demo'
     compileSdk 34
 
     defaultConfig {
-        applicationId "at.maximilianproell.composelivelinechart"
+        applicationId "at.maximilianproell.multiplatformchart.demo"
         minSdk 26
         targetSdk 34
         versionCode 1
@@ -39,7 +39,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.5.3'
+        kotlinCompilerExtensionVersion '1.5.4'
     }
     packagingOptions {
         resources {
@@ -55,7 +55,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation libs.androidx.activity.compose
 
-    implementation platform(libs.androidx.compose.bom)
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.material3)

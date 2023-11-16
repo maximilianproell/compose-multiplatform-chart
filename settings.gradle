@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "Compose Multiplatform Chart"
 include ':app'
 include ':multiplatformchart'
+include ':shared'
