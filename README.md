@@ -1,14 +1,18 @@
-# Jetpack Compose Live Line Chart
-A line chart using Jetpack Compose, optimized for live data.
+# Compose Multiplatform Chart
+A compose multiplatform chart library targeting Android and iOS. 
+
+## Features
+As of now, two chart types are supported:
+- Line chart (specifically optimized for live data)
+- Bar chart
 
 ## Gradle Setup
-In your settings.gradle file, add the following:
+In your settings.gradle file, make sure that mavenCentral is part of your repositories:
 ```gradle
 dependencyResolutionManagement {
-    ...
     repositories {
+        mavenCentral()
         ...
-        maven { url 'https://www.jitpack.io' }
     }
 }
 ```
@@ -17,11 +21,23 @@ Next, add the library dependency to your app build.gradle:
 ```gradle
 dependencies {
     ...
-    implementation 'com.github.maximilianproell:compose-live-line-chart:1.1'
+    implementation "io.github.maximilianproell:compose-multiplatform-chart:2.0.3"
+}
+```
+Or, in case of a multiplatform project, add it to the `commonMain` source set:
+```gradle
+sourceSets {
+    val commonMain by getting {
+        dependencies {
+            implementation("io.github.maximilianproell:compose-multiplatform-chart:2.0.3")
+        }
+    }
+    ...
 }
 ```
 
 ## Usage
+### Line chart
 Here is an example code snippet to create a basic line chart:
 ```kotlin
 LineChart(
@@ -76,7 +92,7 @@ and `showLineDots = true` for the line config, we get the following result:
 
 To learn about all parameters and possible configuration changes, please study the KDoc of this library.
 
-### Live Data
+#### Live Data
 Regarding the LineChart composable, the data is passed inside a lambda. This prevents the LineChart from recomposing when 
 only the chart content has changed.
 The demo App uses the following code in the MainActivity to display live data:
@@ -96,3 +112,22 @@ this library.
 
 The result is the following:
 ![live-chart-demo](screenshots/live-chart.gif)
+
+### Bar chart
+A basic bar chart can be created with the following code:
+```kotlin
+BarChart(
+    modifier = Modifier.fillMaxSize().padding(16.dp),
+    entries = listOf(
+        BarChartEntry("One", 0.5f),
+        BarChartEntry("Two", 1.25f),
+        BarChartEntry("Three", 3f),
+        BarChartEntry("Four", 1f),
+    ),
+    maxYValue = 3f,
+    barConfig = defaultBarConfig.copy(animate = true),
+)
+```
+
+And the result:
+![basic-bar-chart](screenshots/basic-bar-chart.jpg)

@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -70,14 +72,14 @@ fun BarChartPreview() {
     ComposeLiveLinechartTheme {
         Surface {
             BarChart(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+                modifier = Modifier.fillMaxWidth().height(400.dp).padding(16.dp),
                 entries = listOf(
-                    BarChartEntry("MO", 0.233f),
-                    BarChartEntry("DI", 0.41666666f),
-                    BarChartEntry("MI", 1.25f),
-                    BarChartEntry("DO", 1.2833333f),
+                    BarChartEntry("One", 0.5f),
+                    BarChartEntry("Two", 1.25f),
+                    BarChartEntry("Three", 3f),
+                    BarChartEntry("Four", 1f),
                 ),
-                maxYValue = 2f,
+                maxYValue = 3f,
                 barConfig = defaultBarConfig.copy(animate = false),
             )
         }
