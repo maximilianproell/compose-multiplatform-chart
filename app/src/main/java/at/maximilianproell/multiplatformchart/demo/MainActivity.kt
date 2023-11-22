@@ -72,12 +72,12 @@ fun BarChartPreview() {
             BarChart(
                 modifier = Modifier.fillMaxSize().padding(16.dp),
                 entries = listOf(
-                    BarChartEntry("MO", 25f),
-                    BarChartEntry("DI", 50f),
-                    BarChartEntry("MI", 30f),
-                    BarChartEntry("DO", 60f),
+                    BarChartEntry("MO", 0.233f),
+                    BarChartEntry("DI", 0.41666666f),
+                    BarChartEntry("MI", 1.25f),
+                    BarChartEntry("DO", 1.2833333f),
                 ),
-                maxYValue = 60f,
+                maxYValue = 2f,
                 barConfig = defaultBarConfig.copy(animate = false),
             )
         }

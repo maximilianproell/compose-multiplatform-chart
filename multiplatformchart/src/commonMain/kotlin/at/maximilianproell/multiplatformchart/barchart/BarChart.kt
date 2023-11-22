@@ -99,7 +99,7 @@ fun BarChart(
             // Y-Axis
             drawYAxisWithLabels(
                 axisConfig = yAxisConfig,
-                maxValue = ceil(maxYValue),
+                maxValue = maxYValue,
                 textMeasurer = textMeasurer
             )
         }
