@@ -15,19 +15,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -35,6 +39,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastMap
 import at.maximilianproell.multiplatformchart.common.AxisConfigDefaults
 import at.maximilianproell.multiplatformchart.common.LabeledXAxisConfig
 import at.maximilianproell.multiplatformchart.common.LabeledYAxisConfig
@@ -42,10 +47,17 @@ import at.maximilianproell.multiplatformchart.common.drawXAxisWithLabels
 import at.maximilianproell.multiplatformchart.common.drawYAxisWithLabels
 import at.maximilianproell.multiplatformchart.linechart.config.LineConfig
 import at.maximilianproell.multiplatformchart.linechart.config.LineConfigDefaults
+import at.maximilianproell.multiplatformchart.linechart.model.DataPoint
 import at.maximilianproell.multiplatformchart.linechart.model.LegendEntry
 import at.maximilianproell.multiplatformchart.linechart.model.LineDataSet
+import at.maximilianproell.multiplatformchart.linechart.model.downSample
+import at.maximilianproell.multiplatformchart.linechart.model.filterInVisibleRange
 import at.maximilianproell.multiplatformchart.linechart.model.toLegendEntry
 import at.maximilianproell.multiplatformchart.linechart.utils.dataToOffSet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LineChart(
@@ -75,8 +87,77 @@ fun LineChart(
         )
     }
 
-    var canvasWidth by remember {
-        mutableStateOf(1)
+    var wholeCanvasSize by remember {
+        mutableStateOf(Size(1f, 1f))
+    }
+
+    var lineDrawData: LineChartDrawingData by remember {
+        mutableStateOf(LineChartDrawingData())
+    }
+
+    var pointsInVisibleRange: List<List<DataPoint>> by remember {
+        mutableStateOf(emptyList())
+    }
+
+    val minMaxFlow = snapshotFlow { minXLineData }.combine(snapshotFlow { maxXLineData }, ::Pair)
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.Default) {
+            launch {
+                minMaxFlow.collect { (minX, maxX) ->
+                    pointsInVisibleRange = lineDataSets().map { lineDataSet ->
+                        lineDataSet
+                            .dataPoints
+                            .filterInVisibleRange(minX, maxX)
+                            .downSample(100)
+                    }
+                }
+            }
+
+            snapshotFlow { pointsInVisibleRange }.combine(minMaxFlow, ::Pair).collect { (pointsList, minMaxX) ->
+                val scaleFactor = wholeCanvasSize.height.div(maxVisibleYValue - minVisibleYValue)
+
+                data class LineDrawData(
+                    val path: Path,
+                    val offset: List<Offset>
+                )
+
+                val lineData = lineDataSets().mapIndexed { index, lineDataSet ->
+                    // Create path for every lineDataSet.
+                    val path = Path()
+
+                    // Offsets for drawing circles
+                    val offsets = mutableListOf<Offset>()
+
+                    pointsList.getOrNull(index)?.forEachIndexed { pointIndex, point ->
+                        val centerOffset = dataToOffSet(
+                            dataPoint = point,
+                            minXLineData = minMaxX.first,
+                            maxXLineData = minMaxX.second,
+                            size = wholeCanvasSize,
+                            yScaleFactor = scaleFactor,
+                            minYValue = minVisibleYValue,
+                        )
+
+                        offsets.add(centerOffset)
+
+                        if (lineDataSet.dataPoints.size > 1) {
+                            when (pointIndex) {
+                                0 -> path.moveTo(centerOffset.x, centerOffset.y)
+                                else -> path.lineTo(centerOffset.x, centerOffset.y)
+                            }
+                        }
+                    }
+                    LineDrawData(
+                        path, offsets
+                    )
+                }
+                lineDrawData = lineDrawData.copy(
+                    paths = lineData.fastMap { it.path },
+                    centerOffsets = lineData.fastMap { it.offset }
+                )
+            }
+        }
     }
 
     Column(
@@ -94,20 +175,20 @@ fun LineChart(
                         val zoomedRangeLength = originalDifference * zoom
                         val difference = originalDifference - zoomedRangeLength
 
-                        val centerWeighting = centroid.x / canvasWidth
+                        val centerWeighting = centroid.x / wholeCanvasSize.width
 
                         maxXLineData += difference * (1 - centerWeighting)
                         minXLineData -= difference * centerWeighting
 
                         if (originalDifference != 0f) {
-                            val moveDifference = pan.x * (originalDifference / canvasWidth)
+                            val moveDifference = pan.x * (originalDifference / wholeCanvasSize.width)
                             maxXLineData -= moveDifference
                             minXLineData -= moveDifference
                         }
                     }
                 }
                 .onGloballyPositioned {
-                    canvasWidth = it.size.width
+                    wholeCanvasSize = Size(it.size.width.toFloat(), it.size.height.toFloat())
                 }
         ) {
             val circleRadiusPx = if (lineConfig.showLineDots) circleRadius.toPx() else 0f
@@ -127,46 +208,36 @@ fun LineChart(
                 bottom = circleRadiusPx + bottomLabelPadding
             ) {
                 val scaleFactor = size.height.div(maxVisibleYValue - minVisibleYValue)
-
-                lineDataSets().forEach { lineDataSet ->
-                    val path = Path()
+                lineDataSets().forEachIndexed { index, lineDataSet ->
                     val brush = SolidColor(lineDataSet.lineColor)
 
-                    lineDataSet.dataPoints.forEachIndexed { index, data ->
-                        val centerOffset = dataToOffSet(
-                            dataPoint = data,
-                            minXLineData = minXLineData,
-                            maxXLineData = maxXLineData,
-                            size = size,
-                            yScaleFactor = scaleFactor,
-                            minYValue = minVisibleYValue,
-                        )
-
-                        if (lineDataSet.dataPoints.size > 1) {
-                            when (index) {
-                                0 -> path.moveTo(centerOffset.x, centerOffset.y)
-                                else -> path.lineTo(centerOffset.x, centerOffset.y)
-                            }
-                        }
-
-                        // Draw circle on every point.
-                        if (lineConfig.showLineDots) {
-                            drawCircle(
-                                center = centerOffset,
-                                radius = circleRadiusPx,
-                                brush = brush
-                            )
-                        }
-                    }
                     if (lineDataSet.dataPoints.size > 1) {
                         val pathEffect =
                             if (lineConfig.hasSmoothCurve) PathEffect.cornerPathEffect(strokeWidth.toPx())
                             else null
-                        drawPath(
-                            path = path,
-                            brush = brush,
-                            style = Stroke(width = strokeWidth.toPx(), pathEffect = pathEffect),
-                        )
+                        lineDrawData.paths.getOrNull(index)?.let {
+                            drawPath(
+                                path = it,
+                                brush = brush,
+                                style = Stroke(
+                                    width = strokeWidth.toPx(),
+                                    pathEffect = pathEffect,
+                                ),
+                            )
+                        }
+
+                        // Draw circle on every point.
+                        if (lineConfig.showLineDots) {
+                            lineDrawData.centerOffsets.getOrNull(index)?.let {
+                                drawPoints(
+                                    points = it,
+                                    pointMode = PointMode.Points,
+                                    brush = brush,
+                                    strokeWidth = circleRadiusPx * 2,
+                                    cap = StrokeCap.Round
+                                )
+                            }
+                        }
 
                         if (lineConfig.fillAreaUnderLine) {
                             val lastCenterOffset = dataToOffSet(
@@ -186,7 +257,8 @@ fun LineChart(
                                 minYValue = minVisibleYValue,
                             )
 
-                            val backgroundPath = path
+                            // TODO: fix
+                            /*val backgroundPath = path
                                 .apply {
                                     lineTo(lastCenterOffset.x, size.height)
                                     lineTo(firstCenterOffset.x, size.height)
@@ -198,7 +270,7 @@ fun LineChart(
                                     colors = listOf(lineDataSet.lineColor, Color.Transparent),
                                     endY = size.height
                                 ),
-                            )
+                            )*/
                         }
                     }
                 }
@@ -242,6 +314,14 @@ fun LineChart(
         }
     }
 }
+
+/**
+ * Stores the data needed to draw multiple line data sets.
+ */
+private data class LineChartDrawingData(
+    val paths: List<Path> = emptyList(),
+    val centerOffsets: List<List<Offset>> = emptyList()
+)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
