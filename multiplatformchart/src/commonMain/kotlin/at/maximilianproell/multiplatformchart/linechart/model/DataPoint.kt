@@ -8,9 +8,8 @@ import kotlin.math.ceil
  */
 data class DataPoint(val xValue: Float, val yValue: Float)
 
-// TODO: very basic implementation, just for testing.
 /**
- * This function assumes that the given list of [DataPoint] is already sorted.
+ * Returns a subset of this [List] of [DataPoint]s given the range parameters.
  */
 fun List<DataPoint>.filterInVisibleRange(minXData: Float, maxXData: Float): List<DataPoint> {
     return filter { it.xValue in minXData..maxXData }

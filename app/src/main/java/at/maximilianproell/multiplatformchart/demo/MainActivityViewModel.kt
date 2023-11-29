@@ -6,8 +6,8 @@ import at.maximilianproell.multiplatformchart.demo.data.ChartDataRepository
 import at.maximilianproell.multiplatformchart.linechart.model.DataPoint
 import at.maximilianproell.multiplatformchart.linechart.model.LineDataSet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
