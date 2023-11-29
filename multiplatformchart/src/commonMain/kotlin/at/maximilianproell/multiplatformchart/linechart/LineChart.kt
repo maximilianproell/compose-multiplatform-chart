@@ -286,7 +286,6 @@ private fun DrawScope.drawLineChart(
                 .apply {
                     lineTo(lastCenterOffset.x, size.height)
                     lineTo(firstCenterOffset.x, size.height)
-                    close()
                 }
             drawPath(
                 path = backgroundPath,
