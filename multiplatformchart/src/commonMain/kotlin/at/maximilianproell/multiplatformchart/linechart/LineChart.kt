@@ -295,18 +295,17 @@ private fun DrawScope.drawLineChart(
                     endY = size.height
                 ),
             )
+        }
 
-
-            // Draw circle on every point.
-            if (lineConfig.showLineDots) {
-                drawPoints(
-                    points = lineDrawData.offsets,
-                    pointMode = PointMode.Points,
-                    brush = brush,
-                    strokeWidth = circleRadiusPx * 2,
-                    cap = StrokeCap.Round
-                )
-            }
+        // Draw circle on every point.
+        if (lineConfig.showLineDots) {
+            drawPoints(
+                points = lineDrawData.offsets,
+                pointMode = PointMode.Points,
+                brush = brush,
+                strokeWidth = circleRadiusPx * 2,
+                cap = StrokeCap.Round
+            )
         }
     }
 }
