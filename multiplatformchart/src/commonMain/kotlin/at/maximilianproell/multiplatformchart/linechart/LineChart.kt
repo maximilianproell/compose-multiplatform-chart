@@ -46,12 +46,13 @@ import at.maximilianproell.multiplatformchart.common.LabeledXAxisConfig
 import at.maximilianproell.multiplatformchart.common.LabeledYAxisConfig
 import at.maximilianproell.multiplatformchart.common.drawXAxisWithLabels
 import at.maximilianproell.multiplatformchart.common.drawYAxisWithLabels
+import at.maximilianproell.multiplatformchart.common.sampling.LTThreeBuckets.sorted
+import at.maximilianproell.multiplatformchart.common.sampling.Point
 import at.maximilianproell.multiplatformchart.linechart.config.LineConfig
 import at.maximilianproell.multiplatformchart.linechart.config.LineConfigDefaults
 import at.maximilianproell.multiplatformchart.linechart.model.DataPoint
 import at.maximilianproell.multiplatformchart.linechart.model.LegendEntry
 import at.maximilianproell.multiplatformchart.linechart.model.LineDataSet
-import at.maximilianproell.multiplatformchart.linechart.model.downSample
 import at.maximilianproell.multiplatformchart.linechart.model.filterInVisibleRange
 import at.maximilianproell.multiplatformchart.linechart.model.toLegendEntry
 import at.maximilianproell.multiplatformchart.linechart.utils.dataToOffSet
@@ -60,8 +61,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * A line chart optimized for live data.
+ */
 @Composable
-fun LineChart(
+fun LiveLineChart(
     modifier: Modifier = Modifier,
     lineDataSets: () -> List<LineDataSet>,
     minVisibleYValue: Float = 0f,
@@ -73,84 +77,6 @@ fun LineChart(
 ) {
     val textMeasurer = rememberTextMeasurer()
 
-    // We assume that the list of lineData points is sorted. Therefore, it is sufficient to get
-    // the first and last value.
-    var minXLineData by remember {
-        mutableStateOf(
-            lineDataSets().minOfOrNull { it.dataPoints.firstOrNull()?.xValue ?: 0f } ?: 0f
-        )
-    }
-    var maxXLineData by remember {
-        mutableStateOf(
-            lineDataSets().maxOfOrNull { it.dataPoints.lastOrNull()?.xValue ?: 0f } ?: 0f
-        )
-    }
-
-    var chartContentCanvasSize by remember {
-        mutableStateOf(Size(1f, 1f))
-    }
-
-    var lineDrawData: List<LineDrawData> by remember {
-        mutableStateOf(emptyList())
-    }
-
-    var pointsInVisibleRange: List<List<DataPoint>> by remember {
-        mutableStateOf(emptyList())
-    }
-
-    val minMaxFlow = snapshotFlow { minXLineData }.combine(snapshotFlow { maxXLineData }, ::Pair)
-
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
-            launch {
-                minMaxFlow.collect { (minX, maxX) ->
-                    pointsInVisibleRange = lineDataSets().map { lineDataSet ->
-                        lineDataSet
-                            .dataPoints
-                            .filterInVisibleRange(minX, maxX)
-                            .downSample(100)
-                    }
-                }
-            }
-
-            snapshotFlow { pointsInVisibleRange }.combine(minMaxFlow, ::Pair).collect { (pointsList, minMaxX) ->
-                val scaleFactor = chartContentCanvasSize.height / (maxVisibleYValue - minVisibleYValue)
-
-                val lineData = lineDataSets().mapIndexed { index, lineDataSet ->
-                    // Create path for every lineDataSet.
-                    val path = Path()
-
-                    // Offsets for drawing circles
-                    val offsets = mutableListOf<Offset>()
-
-                    pointsList.getOrNull(index)?.forEachIndexed { pointIndex, point ->
-                        val centerOffset = dataToOffSet(
-                            dataPoint = point,
-                            minXLineData = minMaxX.first,
-                            maxXLineData = minMaxX.second,
-                            size = chartContentCanvasSize,
-                            yScaleFactor = scaleFactor,
-                            minYValue = minVisibleYValue,
-                        )
-
-                        offsets.add(centerOffset)
-
-                        if (lineDataSet.dataPoints.size > 1) {
-                            when (pointIndex) {
-                                0 -> path.moveTo(centerOffset.x, centerOffset.y)
-                                else -> path.lineTo(centerOffset.x, centerOffset.y)
-                            }
-                        }
-                    }
-                    LineDrawData(
-                        path, offsets
-                    )
-                }
-                lineDrawData = lineData
-            }
-        }
-    }
-
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -160,24 +86,6 @@ fun LineChart(
                 .weight(1f)
                 .fillMaxWidth()
                 .clipToBounds()
-                .pointerInput(Unit) {
-                    detectTransformGestures { centroid, pan, zoom, rotation ->
-                        val originalDifference = maxXLineData - minXLineData
-                        val zoomedRangeLength = originalDifference * zoom
-                        val difference = originalDifference - zoomedRangeLength
-
-                        val centerWeighting = centroid.x / chartContentCanvasSize.width
-
-                        maxXLineData += difference * (1 - centerWeighting)
-                        minXLineData -= difference * centerWeighting
-
-                        if (originalDifference != 0f) {
-                            val moveDifference = pan.x * (originalDifference / chartContentCanvasSize.width)
-                            maxXLineData -= moveDifference
-                            minXLineData -= moveDifference
-                        }
-                    }
-                }
         ) {
             val circleRadiusPx = if (lineConfig.showLineDots) circleRadius.toPx() else 0f
             val yAxisLabelsOffsetPx = yAxisConfig.labelsXOffset.toPx()
@@ -188,22 +96,35 @@ fun LineChart(
                 // Positive label padding, therefore bottom padding necessary.
                 xAxisLabelsYOffsetPx
             } else 0f
+
+            // We assume that the list of lineData points is sorted. Therefore, it is sufficient to get
+            // the first and last value.
+            val minXLineData = lineDataSets().minOfOrNull { it.dataPoints.firstOrNull()?.xValue ?: 0f } ?: 0f
+            val maxXLineData = lineDataSets().maxOfOrNull { it.dataPoints.lastOrNull()?.xValue ?: 0f } ?: 0f
+
+            val yScaleFactor = size.height / (maxVisibleYValue - minVisibleYValue)
+
             inset(
                 left = circleRadiusPx + yPaddingOffset,
                 right = circleRadiusPx,
                 top = circleRadiusPx,
                 bottom = circleRadiusPx + bottomLabelPadding
             ) {
-                chartContentCanvasSize = size
-                lineDataSets().forEachIndexed { index, lineDataSet ->
-                    lineDrawData.getOrNull(index)?.let { drawData ->
-                        drawLineChart(
-                            lineConfig = lineConfig,
-                            circleRadius = circleRadius,
-                            lineDataSet = lineDataSet,
-                            lineDrawData = drawData
-                        )
-                    }
+                lineDataSets().forEach { lineDataSet ->
+                    val drawData = lineDataSet.dataPoints.createDrawData(
+                        minX = minXLineData,
+                        maxX = maxXLineData,
+                        minVisibleYValue = minVisibleYValue,
+                        canvasSize = size,
+                        yScaleFactor = yScaleFactor,
+                        lineDataSet = lineDataSet,
+                    )
+                    drawLineChart(
+                        lineConfig = lineConfig,
+                        circleRadius = circleRadius,
+                        lineDataSet = lineDataSet,
+                        lineDrawData = drawData
+                    )
                 }
 
                 if (yAxisConfig.numberOfLabels > 1) {
@@ -247,12 +168,224 @@ fun LineChart(
 }
 
 /**
+ * A line chart optimized for large datasets.
+ */
+@Composable
+fun LineChart(
+    modifier: Modifier = Modifier,
+    lineDataSets: List<LineDataSet>,
+    minVisibleYValue: Float = 0f,
+    maxVisibleYValue: Float,
+    circleRadius: Dp = 4.dp,
+    xAxisConfig: LabeledXAxisConfig = AxisConfigDefaults.xAxisConfigDefaults(),
+    yAxisConfig: LabeledYAxisConfig = AxisConfigDefaults.yAxisConfigDefaults(),
+    lineConfig: LineConfig = LineConfigDefaults.lineConfigDefaults()
+) {
+    val textMeasurer = rememberTextMeasurer()
+
+    // We assume that the list of lineData points is sorted. Therefore, it is sufficient to get
+    // the first and last value.
+    var minXLineData by remember(lineDataSets) {
+        mutableStateOf(
+            lineDataSets.minOfOrNull { it.dataPoints.firstOrNull()?.xValue ?: 0f } ?: 0f
+        )
+    }
+    var maxXLineData by remember(lineDataSets) {
+        mutableStateOf(
+            lineDataSets.maxOfOrNull { it.dataPoints.lastOrNull()?.xValue ?: 0f } ?: 0f
+        )
+    }
+
+    var chartContentCanvasSize by remember {
+        mutableStateOf(Size(1f, 1f))
+    }
+
+    var lineDrawData: List<LineDrawData> by remember {
+        mutableStateOf(emptyList())
+    }
+
+    var pointsInVisibleRange: List<List<DataPoint>> by remember {
+        mutableStateOf(emptyList())
+    }
+
+    val minMaxFlow = snapshotFlow { minXLineData }.combine(snapshotFlow { maxXLineData }, ::Pair)
+
+    LaunchedEffect(lineDataSets) {
+        withContext(Dispatchers.Default) {
+            launch {
+                minMaxFlow.collect { (minX, maxX) ->
+                    pointsInVisibleRange = lineDataSets.map { lineDataSet ->
+                        lineDataSet
+                            .dataPoints
+                            .filterInVisibleRange(minX, maxX)
+                            // todo: optimize so mapping is not necessary anymore.
+                            .map { Point(x = it.xValue.toDouble(), y = it.yValue.toDouble()) }
+                            .sorted(desiredBuckets = 250)
+                            .map { DataPoint(xValue = it.x.toFloat(), yValue = it.y.toFloat()) }
+                    }
+                }
+            }
+
+            snapshotFlow { pointsInVisibleRange }.combine(minMaxFlow, ::Pair).collect { (pointsList, minMaxX) ->
+                val yScaleFactor = chartContentCanvasSize.height / (maxVisibleYValue - minVisibleYValue)
+
+                val lineData = lineDataSets.mapIndexed { index, lineDataSet ->
+                    pointsList.getOrNull(index)?.createDrawData(
+                        minX = minMaxX.first,
+                        maxX = minMaxX.second,
+                        canvasSize = chartContentCanvasSize,
+                        yScaleFactor = yScaleFactor,
+                        minVisibleYValue = minVisibleYValue,
+                        lineDataSet = lineDataSet
+                    ) ?: LineDrawData(
+                        path = Path(),
+                        offsets = emptyList(),
+                    )
+                }
+                lineDrawData = lineData
+            }
+        }
+    }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Canvas(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .clipToBounds()
+                .pointerInput(lineDataSets) {
+                    detectTransformGestures { centroid, pan, zoom, rotation ->
+                        val originalDifference = maxXLineData - minXLineData
+                        val zoomedRangeLength = originalDifference * zoom
+                        val difference = originalDifference - zoomedRangeLength
+
+                        val centerWeighting = centroid.x / chartContentCanvasSize.width
+
+                        maxXLineData += difference * (1 - centerWeighting)
+                        minXLineData -= difference * centerWeighting
+
+                        if (originalDifference != 0f) {
+                            val moveDifference = pan.x * (originalDifference / chartContentCanvasSize.width)
+                            maxXLineData -= moveDifference
+                            minXLineData -= moveDifference
+                        }
+                    }
+                }
+        ) {
+            val circleRadiusPx = if (lineConfig.showLineDots) circleRadius.toPx() else 0f
+            val yAxisLabelsOffsetPx = yAxisConfig.labelsXOffset.toPx()
+            val yPaddingOffset = if (yAxisLabelsOffsetPx < 0f) yAxisLabelsOffsetPx * -1 else 0f
+
+            val xAxisLabelsYOffsetPx = xAxisConfig.labelsYOffset.toPx()
+            val bottomLabelPadding = if (xAxisLabelsYOffsetPx > 0) {
+                // Positive label padding, therefore bottom padding necessary.
+                xAxisLabelsYOffsetPx
+            } else 0f
+            inset(
+                left = circleRadiusPx + yPaddingOffset,
+                right = circleRadiusPx,
+                top = circleRadiusPx,
+                bottom = circleRadiusPx + bottomLabelPadding
+            ) {
+                chartContentCanvasSize = size
+                lineDataSets.forEachIndexed { index, lineDataSet ->
+                    lineDrawData.getOrNull(index)?.let { drawData ->
+                        drawLineChart(
+                            lineConfig = lineConfig,
+                            circleRadius = circleRadius,
+                            lineDataSet = lineDataSet,
+                            lineDrawData = drawData
+                        )
+                    }
+                }
+
+                if (yAxisConfig.numberOfLabels > 1) {
+                    drawYAxisWithLabels(
+                        yAxisConfig,
+                        minValue = minVisibleYValue,
+                        maxValue = maxVisibleYValue,
+                        drawingHeight = size.height,
+                        textMeasurer = textMeasurer,
+                    )
+                }
+            }
+
+            // Draw x labels
+            inset(
+                left = yPaddingOffset,
+                right = 0f,
+                bottom = 0f,
+                top = 0f
+            ) {
+                drawXAxisWithLabels(
+                    minXLineData = minXLineData,
+                    maxXLineData = maxXLineData,
+                    xAxisConfig = xAxisConfig,
+                    textMeasurer = textMeasurer,
+                )
+            }
+        }
+
+        val legendEntries = remember {
+            derivedStateOf { lineDataSets.map { it.toLegendEntry() } }
+        }
+
+        if (legendEntries.value.isNotEmpty()) {
+            ChartLegend(
+                modifier = Modifier.padding(horizontal = yAxisConfig.labelsXOffset.coerceAtLeast(0.dp)),
+                legendEntries = legendEntries.value
+            )
+        }
+    }
+}
+
+/**
  * Represents the data needed to draw a line data set.
  */
 data class LineDrawData(
     val path: Path,
     val offsets: List<Offset>
 )
+
+private fun List<DataPoint>.createDrawData(
+    minX: Float,
+    maxX: Float,
+    minVisibleYValue: Float,
+    canvasSize: Size,
+    yScaleFactor: Float,
+    lineDataSet: LineDataSet,
+): LineDrawData {
+    val path = Path()
+
+    // Offsets for drawing circles
+    val offsets = mutableListOf<Offset>()
+
+    forEachIndexed { pointIndex, point ->
+        val centerOffset = dataToOffSet(
+            dataPoint = point,
+            minXLineData = minX,
+            maxXLineData = maxX,
+            size = canvasSize,
+            yScaleFactor = yScaleFactor,
+            minYValue = minVisibleYValue,
+        )
+
+        offsets.add(centerOffset)
+
+        if (lineDataSet.dataPoints.size > 1) {
+            when (pointIndex) {
+                0 -> path.moveTo(centerOffset.x, centerOffset.y)
+                else -> path.lineTo(centerOffset.x, centerOffset.y)
+            }
+        }
+    }
+    return LineDrawData(
+        path, offsets
+    )
+}
 
 private fun DrawScope.drawLineChart(
     lineConfig: LineConfig,
@@ -262,6 +395,7 @@ private fun DrawScope.drawLineChart(
 ) {
     val circleRadiusPx = if (lineConfig.showLineDots) circleRadius.toPx() else 0f
 
+    // todo: think about how the brush could be cached in that case, as object creation is expensive.
     val brush = SolidColor(lineDataSet.lineColor)
 
     if (lineDrawData.offsets.size > 1) {
