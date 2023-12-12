@@ -5,19 +5,8 @@ internal class Bucket private constructor(
     val first: Point,
     val last: Point,
     val center: Point,
-    result: Point
-) {
     var result: Point
-        private set
-
-    init {
-        this.result = result
-    }
-
-    fun setResult(result: Point) {
-        this.result = result
-    }
-
+) {
     fun <U> map(mapper: (Point) -> U): List<U> {
         return data.map(mapper)
     }
@@ -25,9 +14,15 @@ internal class Bucket private constructor(
     companion object {
         fun of(us: List<Point>): Bucket {
             val first = us[0]
-            val last = us[us.size - 1]
-            val center = first.add(last.subtract(first).half())
-            return Bucket(us, first, last, center, first)
+            val last = us.last()
+            val center = first + (last - first).half()
+            return Bucket(
+                data = us,
+                first = first,
+                last = last,
+                center = center,
+                result = first
+            )
         }
 
         fun of(u: Point): Bucket {

@@ -20,13 +20,17 @@ internal class Triangle private constructor(
     val last: Point
         get() = right.last
     val result: Point
-        get() = center.map { b ->
-            Area.ofTriangle(
-                left.result,
-                b,
-                right.center
-            )
-        }.maxBy(Area::value).generator
+        get() {
+            val resultPoint = center.map { b ->
+                Area.ofTriangle(
+                    left.result,
+                    b,
+                    right.center
+                )
+            }.maxBy(Area::value).generator
+            center.result = resultPoint
+            return resultPoint
+        }
 
     companion object {
         fun of(buckets: List<Bucket>): Triangle {

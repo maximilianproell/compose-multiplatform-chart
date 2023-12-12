@@ -69,6 +69,8 @@ dependencies {
     kapt libs.dagger.hilt.compiler
 
     implementation project(":multiplatformchart")
+
+    implementation(libs.kotlin.csv.jvm)
 }
 
 kapt {

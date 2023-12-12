@@ -4,6 +4,7 @@ atomicfu = "0.22.0"
 compose = "1.5.10"
 androidComposeBom = "2023.10.01"
 androidxCore = "1.12.0"
+kotlinCsv = "1.9.2"
 lifecycleRuntime = "2.6.2"
 kotlin = "1.9.20"
 daggerHilt = "2.48.1"
@@ -19,6 +20,7 @@ androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling"}
 androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntime" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntime" }
+kotlin-csv-jvm = { module = "com.github.doyaaaaaken:kotlin-csv-jvm", version.ref = "kotlinCsv" }
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "daggerHilt" }
 dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "daggerHilt" }

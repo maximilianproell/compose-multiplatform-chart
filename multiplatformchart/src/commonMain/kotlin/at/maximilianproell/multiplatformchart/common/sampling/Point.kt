@@ -5,14 +5,14 @@ data class Point(
     val y: Double
 ) {
 
-    fun add(other: Point): Point {
+    operator fun plus(other: Point): Point {
         return this.copy(
             x = x + other.x,
             y = y + other.y,
         )
     }
 
-    fun subtract(other: Point): Point {
+    operator fun minus(other: Point): Point {
         return this.copy(
             x = x - other.x,
             y = y - other.y,
