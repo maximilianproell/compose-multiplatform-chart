@@ -31,6 +31,7 @@ kotlin {
                 api(compose.foundation)
                 api(compose.material3)
                 api(compose.animation)
+                implementation(libs.compose.ui.util)
 
                 implementation(libs.kotlinx.atomicfu)
             }
