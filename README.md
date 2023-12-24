@@ -3,7 +3,7 @@ A compose multiplatform chart library targeting Android and iOS.
 
 ## Features
 As of now, two chart types are supported:
-- Line chart (specifically optimized for live data)
+- Line chart (optimized versions for live data and huge datasets available)
 - Bar chart
 
 ## Gradle Setup
@@ -21,7 +21,7 @@ Next, add the library dependency to your app build.gradle:
 ```gradle
 dependencies {
     ...
-    implementation "io.github.maximilianproell:compose-multiplatform-chart:2.0.3"
+    implementation "io.github.maximilianproell:compose-multiplatform-chart:2.1.0"
 }
 ```
 Or, in case of a multiplatform project, add it to the `commonMain` source set:
@@ -29,7 +29,7 @@ Or, in case of a multiplatform project, add it to the `commonMain` source set:
 sourceSets {
     val commonMain by getting {
         dependencies {
-            implementation("io.github.maximilianproell:compose-multiplatform-chart:2.0.3")
+            implementation("io.github.maximilianproell:compose-multiplatform-chart:2.1.0")
         }
     }
     ...
@@ -41,7 +41,7 @@ sourceSets {
 Here is an example code snippet to create a basic line chart:
 ```kotlin
 LineChart(
-    lineDataSets = {
+    lineDataSets =
         listOf(
             LineDataSet(
                 name = "Red Line",
@@ -66,8 +66,7 @@ LineChart(
                 ),
                 lineColor = Color.Magenta,
             ),
-        )
-    },
+        ),
     maxVisibleYValue = 30f,
     xAxisConfig = AxisConfigDefaults.xAxisConfigDefaults().copy(
         labelsYOffset = 12.dp,
@@ -84,34 +83,32 @@ LineChart(
 The resulting chart looks as follows:
 ![basic-chart](screenshots/basic-chart.jpg)
 
-The parameters can be changed to your needs. E.g., you can change the x-axis and y-axis configurations and adapt the 
-paddings. The paddings may be positive or negative. If we change the `labelsXOffset` of the yAxisConfig to `(-28).dp` (y-axis
-labels are drawn outside of the chart),
-and `showLineDots = true` for the line config, we get the following result:
+The parameters can be changed to your needs. E.g., you can change the x-axis and y-axis configurations and adapt the paddings. The paddings may be positive or negative. If we change the `labelsXOffset` of the yAxisConfig to `(-28).dp` (y-axis labels are drawn outside of the chart), and `showLineDots = true` for the line config, we get the following result:
 ![basic-chart-with-dots](screenshots/basic-chart-yaxis-outside.jpg)
 
 To learn about all parameters and possible configuration changes, please study the KDoc of this library.
 
 #### Live Data
-Regarding the LineChart composable, the data is passed inside a lambda. This prevents the LineChart from recomposing when 
-only the chart content has changed.
-The demo App uses the following code in the MainActivity to display live data:
+For live data, use the `LiveLineChart` composable, where the data is passed inside a lambda. This prevents the LineChart from recomposing when only the chart content has changed. The demo App uses the following code in the MainActivity to display live data:
 ```kotlin
 val chartData by viewModel.chartData.collectAsState(initial = emptyList())
 
 Surface(modifier = Modifier.fillMaxSize()) {
-    LineChart(
+    LiveLineChart(
         modifier = Modifier.padding(16.dp),
         lineDataSets = { chartData },
         // ...
     )
 }
 ```
-For more implementation details, please study the demo App provided with
-this library.
+For more implementation details, please study the demo App provided with this library.
 
 The result is the following:
 ![live-chart-demo](screenshots/live-chart.gif)
+
+#### Big datasets
+For big datasets, simply use the aforementioned `LineChart` composable. Pinch to zoom is automatically activated. The sample Android App comes with a heart rate dataset with over 600 hours of data (over 2 million data points). While exploring the data through gestures, the `LineChart` automatically reloads the data and downsamples it using the Largest Triangle Three Buckets (LTTB) alogorithm:
+![live-chart-demo](screenshots/line-chart-huge-data.gif)
 
 ### Bar chart
 A basic bar chart can be created with the following code:

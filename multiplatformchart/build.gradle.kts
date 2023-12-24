@@ -66,7 +66,7 @@ mavenPublishing {
 
     signAllPublications()
 
-    coordinates("io.github.maximilianproell", "compose-multiplatform-chart", "2.0.3")
+    coordinates("io.github.maximilianproell", "compose-multiplatform-chart", "2.1.0")
 
     pom {
         name.set("Compose Multiplatform Chart")
